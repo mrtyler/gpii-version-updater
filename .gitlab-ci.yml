@@ -1,0 +1,13 @@
+stages:
+  - build
+  - push
+
+build:
+  stage: build
+  script:
+    - docker build -t gpii/version-updater .
+
+push:
+  stage: push
+  script:
+    - docker push gpii/version-updater
