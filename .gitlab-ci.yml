@@ -5,7 +5,7 @@ stages:
 build:
   stage: build
   script:
-    - docker build -t gpii/version-updater .
+    - docker build --rm -t gpii/version-updater .
 
 push:
   stage: push
