@@ -15,7 +15,7 @@ while true ; do
     git fetch --all --tags -p
     git reset --hard origin/master
 
-    ./update-version
+    $(dirname $0)/update-version
     if [ -n "$(git status --porcelain -- version.yml)" ]; then
         git add version.yml
         git commit -m"[auto] Update version.yml"

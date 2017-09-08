@@ -4,6 +4,7 @@ This repo contains a Docker image for tracking versions of GPII components to be
 
 This module contains:
 * `update-version`, which calculates the latest sha256 for each component and writes `version.yml` in the [gpii-terraform repo](https://github.com/gpii-ops/gpii-terraform/).
+* `components.conf`, a list of GPII components and the Docker images and tags that run them. This file is consumed by `update-version`.
 * `update-version-wrapper`, a script that runs `update-version` in a loop, committing and pushing `version.yml` if it changes.
 * `Dockerfile`, to build a Docker image that runs `update-version-wrapper`.
    * A container based on this Docker image is deployed to `i46` and managed by [ansible](https://github.com/inclusive-design/ops).

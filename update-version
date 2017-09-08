@@ -2,12 +2,8 @@
 
 set -e
 
-# Whitespace-separated list of components of the form 'service|image|tag'.
-COMPONENTS="\
-    flow-manager|gpii/universal|latest \
-    preferences-dataloader|gpii/preferences-dataloader|latest \
-    preferences|gpii/universal|latest \
-"
+components_file="$(dirname $0)/components.conf"
+COMPONENTS=$(grep -v '^#' $components_file)
 
 for component in $COMPONENTS ; do
     service=$(echo "$component" | awk -F'|' '{print $1}')
