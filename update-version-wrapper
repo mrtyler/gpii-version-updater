@@ -7,8 +7,12 @@ orig_dir="$(pwd)"
 export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa.gpii-ci'
 git config --global user.email "gpii-bot@gpii.net"
 git config --global user.name "GPII Bot"
-# Don't need the full history, but want a few previous revisions in case we
-# need those revisions to push to a remote (e.g. gitlab) that hasn't been
+
+# When an existing container is restarted, the sandbox is left behind. Clear it
+# out and start over.
+rm -rf gpii-terraform
+# We don't need the full history, but we want a few previous revisions in case
+# we need those revisions to push to a remote (e.g. gitlab) that hasn't been
 # updated in a bit.
 git clone --depth 10 git@github.com:gpii-ops/gpii-terraform
 cd gpii-terraform/modules/deploy
