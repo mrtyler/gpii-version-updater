@@ -35,6 +35,7 @@ while true ; do
     fi
 
     sleep_secs=300
+    echo "Finished version check at $(date)"
     echo "Sleeping $sleep_secs..."
     sleep $sleep_secs
 done
