@@ -10,13 +10,13 @@ git config --global user.name "GPII Bot"
 
 # When an existing container is restarted, the sandbox is left behind. Clear it
 # out and start over.
-rm -rf gpii-terraform
+rm -rf gpii-infra
 # We don't need the full history, but we want a few previous revisions in case
 # we need those revisions to push to a remote (e.g. gitlab) that hasn't been
 # updated in a bit.
-git clone --depth 10 git@github.com:gpii-ops/gpii-terraform
-cd gpii-terraform/modules/deploy
-git remote add gitlab git@gitlab.com:gpii-ops/gpii-terraform
+git clone --depth 10 git@github.com:gpii-ops/gpii-infra
+cd gpii-infra/modules/deploy
+git remote add gitlab git@gitlab.com:gpii-ops/gpii-infra
 
 # Failures in the main loop are ok, so continue if anything fails and try again
 # on the next go around.
