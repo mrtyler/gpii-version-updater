@@ -11,3 +11,7 @@ This module contains:
    * This requires commit and push privileges on `gpii-infra`. These privileges are provided via an [ssh key](https://github.com/gpii-ops/gpii-infra/#configure-ssh) and some configuration of [Github](https://github.com/gpii-ops/gpii-infra/blob/master/CI-CD.md#configure-github) and [Gitlab](https://github.com/gpii-ops/gpii-infra/blob/master/CI-CD.md#configure-gitlab).
 * `Dockerfile`, to build a Docker image that runs `update-version-wrapper`.
    * A container based on this Docker image is deployed to `i46` and managed by an [Ansible role](https://github.com/idi-ops/ansible-gpii-version-updater) and a [wrapper playbook](https://github.com/inclusive-design/ops/blob/master/ansible/config_host_gpii_version_updater.yml).
+
+## Generating `version.yml` manually
+
+`update-version` can be useful for local GPII development. See [gpii-infra: I want to test my local changes to GPII components in my cluster](https://github.com/gpii-ops/gpii-infra#i-want-to-test-my-local-changes-to-gpii-components-in-my-cluster).
