@@ -12,7 +12,7 @@ for component in $COMPONENTS ; do
     echo "Looking up '$image:$tag' for service '$service'..."
     api_token=$(\
         curl -L -s \
-        --retry 3 --retry-delay 1 --retry-connrefused \
+        --retry 3 --retry-delay 1 \
         "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$image:pull" \
         | jq -r .token \
     )
@@ -20,7 +20,7 @@ for component in $COMPONENTS ; do
     # https://stackoverflow.com/questions/39375421/can-i-get-an-image-digest-without-downloading-the-image.
     api_out=$(\
         curl -L -s \
-        --retry 3 --retry-delay 1 --retry-connrefused \
+        --retry 3 --retry-delay 1 \
         --head \
         -H "Authorization: Bearer $api_token" \
         -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
