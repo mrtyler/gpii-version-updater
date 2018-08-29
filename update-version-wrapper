@@ -29,7 +29,7 @@ while true ; do
     git reset --hard origin/master
 
     "${orig_dir}/update-version" "${versions_file}"
-    if [ -n "$(git status --porcelain -- ${versions_file}" ]; then
+    if [ -n "$(git status --porcelain -- ${versions_file})" ]; then
         git add "${versions_file}"
         git commit -m"[auto] Update ${versions_file}"
         git push origin HEAD
