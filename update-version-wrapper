@@ -4,6 +4,8 @@
 set -e
 
 orig_dir="$(pwd)"
+versions_file='common/versions.yml'
+
 export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa.gpii-ci'
 git config --global user.email "gpii-bot@gpii.net"
 git config --global user.name "GPII Bot"
@@ -15,7 +17,7 @@ rm -rf gpii-infra
 # we need those revisions to push to a remote (e.g. gitlab) that hasn't been
 # updated in a bit.
 git clone --depth 10 git@github.com:gpii-ops/gpii-infra
-cd gpii-infra/aws/modules/deploy
+cd gpii-infra
 git remote add gitlab git@gitlab.com:gpii-ops/gpii-infra
 
 # Failures in the main loop are ok, so continue if anything fails and try again
@@ -26,10 +28,10 @@ while true ; do
     git fetch --all --tags -p
     git reset --hard origin/master
 
-    "$orig_dir/update-version"
-    if [ -n "$(git status --porcelain -- version.yml)" ]; then
-        git add version.yml
-        git commit -m"[auto] Update version.yml"
+    "${orig_dir}/update-version" "${versions_file}"
+    if [ -n "$(git status --porcelain -- ${versions_file}" ]; then
+        git add "${versions_file}"
+        git commit -m"[auto] Update ${versions_file}"
         git push origin HEAD
         git push gitlab HEAD
     fi
