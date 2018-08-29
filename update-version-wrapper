@@ -16,7 +16,7 @@ rm -rf gpii-infra
 # We don't need the full history, but we want a few previous revisions in case
 # we need those revisions to push to a remote (e.g. gitlab) that hasn't been
 # updated in a bit.
-git clone --depth 10 git@github.com:gpii-ops/gpii-infra
+git clone --no-tags --depth 10 git@github.com:gpii-ops/gpii-infra
 cd gpii-infra
 git remote add gitlab git@gitlab.com:gpii-ops/gpii-infra
 
@@ -25,10 +25,10 @@ git remote add gitlab git@gitlab.com:gpii-ops/gpii-infra
 set +e
 while true ; do
     echo "Starting version check at $(date)"
-    git fetch --all --tags -p
+    git fetch --all --depth=10 -p
     git reset --hard origin/master
 
-    "${orig_dir}/update-version" "${versions_file}"
+    "${orig_dir}/update-version" "$(pwd)/${versions_file}"
     if [ -n "$(git status --porcelain -- ${versions_file})" ]; then
         git add "${versions_file}"
         git commit -m"[auto] Update ${versions_file}"
