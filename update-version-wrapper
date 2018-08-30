@@ -18,7 +18,7 @@ rm -rf gpii-infra
 # updated in a bit.
 git clone --no-tags --depth 10 git@github.com:gpii-ops/gpii-infra
 cd gpii-infra
-git remote add gitlab git@gitlab.com:gpii-ops/gpii-infra
+git remote add --no-tags gitlab git@gitlab.com:gpii-ops/gpii-infra
 
 # Failures in the main loop are ok, so continue if anything fails and try again
 # on the next go around.
