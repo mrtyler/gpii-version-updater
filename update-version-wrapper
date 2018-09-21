@@ -4,7 +4,7 @@
 set -e
 
 orig_dir="$(pwd)"
-versions_file='common/versions.yml'
+versions_file='shared/versions.yml'
 
 export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa.gpii-ci'
 git config --global user.email "gpii-bot@gpii.net"
