@@ -12,4 +12,4 @@ push:
   script:
     - docker push gpii/version-updater
   only:
-    - master@gpii-ops/gpii-infra
+    - master@gpii-ops/gpii-version-updater
