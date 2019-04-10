@@ -6,12 +6,12 @@ require "yaml"
 
 class SyncImages
 
-  CONFIG_FILE = "./gpii-infra/shared/versions.yml"
+  CONFIG_FILE = "../gpii-infra/shared/versions.yml"
   CREDS_FILE = "./creds.json"
   REGISTRY_URL = "gcr.io/gpii2test-common-stg"
 
-  def self.load_config()
-    return YAML.load(File.read(SyncImages::CONFIG_FILE))
+  def self.load_config(config_file)
+    return YAML.load(File.read(config_file))
   end
 
   def self.login()
@@ -32,7 +32,7 @@ class SyncImages
       config[component]["sha"] = sha
       config[component]["tag"] = tag
     end
-    self.write_new_config(config)
+    return config
   end
 
   def self.process_image(component, image_name)
@@ -84,8 +84,8 @@ class SyncImages
     end
   end
 
-  def self.write_new_config(config)
-    File.open(CONFIG_FILE, "w") do |f|
+  def self.write_new_config(config_file, config)
+    File.open(config_file, "w") do |f|
       f.write(YAML.dump(config))
     end
   end
@@ -93,10 +93,11 @@ class SyncImages
 end
 
 
-def main()
-  config = SyncImages.load_config()
+def main(config_file=SyncImages::CONFIG_FILE)
+  config = SyncImages.load_config(config_file)
   SyncImages.login()
   SyncImages.process_config(config)
+  SyncImages.write_new_config(config_file, config)
 end
 
 

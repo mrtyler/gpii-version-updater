@@ -6,8 +6,12 @@ task :test do
 end
 
 desc "Sync images"
-task :sync do
-  sh "bundle exec ruby -e 'require \"./sync_images.rb\"; main()'"
+task :sync, [:config_file] do |taskname, args|
+  main_cmd = "main()"
+  if args[:config_file]
+    main_cmd = "main(config_file=\"#{args[:config_file]}\")"
+  end
+  sh "bundle exec ruby -e 'require \"./sync_images.rb\"; #{main_cmd}'"
 end
 
 

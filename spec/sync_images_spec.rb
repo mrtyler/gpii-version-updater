@@ -5,11 +5,12 @@ describe SyncImages do
   # It is not necessary or desirable to test File.read or YAML.load, but this
   # validates some plumbing.
   it "load_config returns parsed yaml" do
+    fake_config_file = "path/to/versions.yml"
     fake_yaml = "foo: bar"
-    allow(File).to receive(:read).with(SyncImages::CONFIG_FILE).and_return(fake_yaml)
+    allow(File).to receive(:read).with(fake_config_file).and_return(fake_yaml)
 
     expected = {"foo" => "bar"}
-    actual = SyncImages.load_config()
+    actual = SyncImages.load_config(fake_config_file)
     expect(actual).to eq(expected)
   end
 
@@ -68,9 +69,8 @@ describe SyncImages do
     )
     allow(SyncImages).to receive(:write_new_config)
 
-    SyncImages.process_config(fake_config)
-
-    expect(SyncImages).to have_received(:write_new_config).with(expected_config)
+    actual = SyncImages.process_config(fake_config)
+    expect(actual).to eq(expected_config)
   end
 
   it "process_image calls helpers on image" do
@@ -162,12 +162,13 @@ describe SyncImages do
   # It is not necessary or desirable to test File.write or YAML.dump, but this
   # validates some plumbing.
   it "write_new_config dumps and writes yaml" do
+    fake_config_file = "./fake-versions.yml"
     fake_config = {
       "foo" => "bar",
     }
     buffer = StringIO.new()
     allow(File).to receive(:open).and_yield(buffer)
-    SyncImages.write_new_config(fake_config)
+    SyncImages.write_new_config(fake_config_file, fake_config)
     expect(buffer.string).to eq("---\nfoo: bar\n")
   end
 
