@@ -14,5 +14,10 @@ task :sync, [:config_file] do |taskname, args|
   sh "bundle exec ruby -e 'require \"./sync_images.rb\"; #{main_cmd}'"
 end
 
+desc "Destroy volume containing docker image cache"
+task :clean do
+  sh "docker volume rm -f version-updater-docker-cache"
+end
+
 
 # vim: set et ts=2 sw=2:
