@@ -12,6 +12,10 @@ WORKDIR /home/app
 COPY \
     Gemfile \
     Gemfile.lock \
+    ./
+RUN mkdir -p vendor/bundle && bundle install --path vendor/bundle
+
+COPY \
     LICENSE.txt \
     README.md \
     Rakefile \
@@ -23,6 +27,5 @@ COPY \
     spec \
     ./spec
 RUN chmod -R +rX * && chmod +x update-version-wrapper
-RUN mkdir -p vendor/bundle && bundle install --path vendor/bundle
 
 CMD dockerd & ./update-version-wrapper
