@@ -1,11 +1,17 @@
 stages:
   - build
+  - test
   - push
 
 build:
   stage: build
   script:
     - docker build --rm -t gpii/version-updater .
+
+test:
+  stage: test
+  script:
+    - docker run --rm gpii/version-updater rake
 
 push:
   stage: push
