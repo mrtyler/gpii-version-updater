@@ -23,14 +23,14 @@ describe SyncImages do
         "upstream_image" => "gpii/universal:latest",
       },
     }
+    fake_registry_url = "gcr.fake/fake-project"
 
     allow(SyncImages).to receive(:process_image)
-    allow(SyncImages).to receive(:write_new_config)
 
-    SyncImages.process_config(fake_config)
+    SyncImages.process_config(fake_config, fake_registry_url)
 
-    expect(SyncImages).to have_received(:process_image).with("dataloader", "gpii/universal:latest")
-    expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest")
+    expect(SyncImages).to have_received(:process_image).with("dataloader", "gpii/universal:latest", fake_registry_url)
+    expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest", fake_registry_url)
   end
 
   it "process_config generates new config" do
@@ -44,7 +44,8 @@ describe SyncImages do
         "upstream_image" => "gpii/universal:latest",
       },
     }
-    fake_new_image_name = "#{SyncImages::REGISTRY_URL}/gpii/universal"
+    fake_registry_url = "gcr.fake/fake-project"
+    fake_new_image_name = "fake-registry/gpii/universal"
     fake_sha_1 = "sha256:c0ffee"
     fake_sha_2 = "sha256:50da"
     fake_tag = "latest"
@@ -73,7 +74,7 @@ describe SyncImages do
     )
     allow(SyncImages).to receive(:write_new_config)
 
-    actual = SyncImages.process_config(fake_config)
+    actual = SyncImages.process_config(fake_config, fake_registry_url)
     expect(actual).to eq(expected_config)
   end
 
@@ -81,6 +82,7 @@ describe SyncImages do
     fake_component = "fake_component"
     fake_image = "fake Docker::Image object"
     fake_image_name = "fake_org/fake_img:fake_tag"
+    fake_registry_url = "gcr.fake/fake-project"
     fake_new_image_name = "#{SyncImages::REGISTRY_URL}/#{fake_image_name}"
     fake_new_image_name_without_tag = "#{SyncImages::REGISTRY_URL}/fake_org/fake_img"
     fake_sha = "sha256:c0ffee"
@@ -91,10 +93,10 @@ describe SyncImages do
     allow(SyncImages).to receive(:get_sha_from_image).and_return(fake_sha)
     allow(SyncImages).to receive(:push_image)
 
-    actual = SyncImages.process_image(fake_component, fake_image_name)
+    actual = SyncImages.process_image(fake_component, fake_image_name, fake_registry_url)
 
     expect(SyncImages).to have_received(:pull_image).with(fake_image_name)
-    expect(SyncImages).to have_received(:retag_image).with(fake_image, fake_image_name)
+    expect(SyncImages).to have_received(:retag_image).with(fake_image, fake_registry_url, fake_image_name)
     expect(SyncImages).to have_received(:get_sha_from_image).with(fake_image)
     expect(SyncImages).to have_received(:push_image).with(fake_image, fake_new_image_name)
     expect(actual).to eq([fake_new_image_name_without_tag, fake_sha, fake_tag])
@@ -132,11 +134,12 @@ describe SyncImages do
 
   it "retag_image retags iamge" do
     fake_image = double(Docker::Image)
+    fake_registry_url = "gcr.fake/fake-project"
     fake_image_name = "fake_org/fake_img:fake_tag"
-    fake_new_image_name = "#{SyncImages::REGISTRY_URL}/#{fake_image_name}"
+    fake_new_image_name = "#{fake_registry_url}/#{fake_image_name}"
 
     allow(fake_image).to receive(:tag)
-    actual = SyncImages.retag_image(fake_image, fake_image_name)
+    actual = SyncImages.retag_image(fake_image, fake_registry_url, fake_image_name)
     expect(fake_image).to have_received(:tag).with({"repo" => fake_new_image_name})
     expect(actual).to eq(fake_new_image_name)
   end

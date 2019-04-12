@@ -24,10 +24,10 @@ class SyncImages
     )
   end
 
-  def self.process_config(config)
+  def self.process_config(config, registry_url)
     config.keys.sort.each do |component|
       image_name = config[component]["upstream_image"]
-      (new_image_name, sha, tag) = self.process_image(component, image_name)
+      (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url)
       config[component]["generated"] = {
         "image" => new_image_name,
         "sha" => sha,
@@ -37,9 +37,9 @@ class SyncImages
     return config
   end
 
-  def self.process_image(component, image_name)
+  def self.process_image(component, image_name, registry_url)
     image = self.pull_image(image_name)
-    new_image_name = self.retag_image(image, image_name)
+    new_image_name = self.retag_image(image, registry_url, image_name)
     new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
     sha = self.get_sha_from_image(image)
     self.push_image(image, new_image_name)
@@ -65,8 +65,8 @@ class SyncImages
     return sha
   end
 
-  def self.retag_image(image, image_name)
-    new_image_name = "#{SyncImages::REGISTRY_URL}/#{image_name}"
+  def self.retag_image(image, registry_url, image_name)
+    new_image_name = "#{registry_url}/#{image_name}"
     puts "Retagging #{image_name} as #{new_image_name}..."
     image.tag("repo" => new_image_name)
     return new_image_name
@@ -103,10 +103,16 @@ class SyncImages
 end
 
 
-def main(config_file=SyncImages::CONFIG_FILE)
+def main(config_file, registry_url)
+  if config_file.nil? or config_file.empty?
+    config_file = SyncImages::CONFIG_FILE
+  end
+  if registry_url.nil? or registry_url.empty?
+    registry_url = SyncImages::REGISTRY_URL
+  end
   config = SyncImages.load_config(config_file)
   SyncImages.login()
-  SyncImages.process_config(config)
+  SyncImages.process_config(config, registry_url)
   SyncImages.write_new_config(config_file, config)
 end
 
