@@ -28,9 +28,11 @@ class SyncImages
     config.keys.sort.each do |component|
       image_name = config[component]["upstream_image"]
       (new_image_name, sha, tag) = self.process_image(component, image_name)
-      config[component]["image"] = new_image_name
-      config[component]["sha"] = sha
-      config[component]["tag"] = tag
+      config[component]["generated"] = {
+        "image" => new_image_name,
+        "sha" => sha,
+        "tag" => tag,
+      }
     end
     return config
   end

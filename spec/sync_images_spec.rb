@@ -33,7 +33,7 @@ describe SyncImages do
     expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest")
   end
 
-  it "process_config writes new config" do
+  it "process_config generates new config" do
     # Keys are out of lexical order to test that they get sorted at the end
     # (and thus get the shas in the right order).
     fake_config = {
@@ -51,15 +51,19 @@ describe SyncImages do
     expected_config = {
       "dataloader" => {
         "upstream_image" => "gpii/universal:latest",
-        "image" => fake_new_image_name,
-        "sha" => fake_sha_1,
-        "tag" => fake_tag,
+        "generated" => {
+          "image" => fake_new_image_name,
+          "sha" => fake_sha_1,
+          "tag" => fake_tag,
+        },
       },
       "flowmanager" => {
         "upstream_image" => "gpii/universal:latest",
-        "image" => fake_new_image_name,
-        "sha" => fake_sha_2,
-        "tag" => fake_tag,
+        "generated" => {
+          "image" => fake_new_image_name,
+          "sha" => fake_sha_2,
+          "tag" => fake_tag,
+        },
       },
     }
 
