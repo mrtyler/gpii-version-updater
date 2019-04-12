@@ -173,7 +173,10 @@ describe SyncImages do
     buffer = StringIO.new()
     allow(File).to receive(:open).and_yield(buffer)
     SyncImages.write_new_config(fake_config_file, fake_config)
-    expect(buffer.string).to eq("---\nfoo: bar\n")
+    # Look for static header
+    expect(buffer.string.start_with?("# versions.yml")).to eq(true)
+    # Look for value from fake_config
+    expect(buffer.string.include?("foo: bar\n")).to eq(true)
   end
 
 end

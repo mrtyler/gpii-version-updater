@@ -87,7 +87,15 @@ class SyncImages
   end
 
   def self.write_new_config(config_file, config)
+    header = """# versions.yml
+#
+# This file is managed by https://github.com/gpii-ops/gpii-version-updater.
+#
+# See the README for details on how to modify which images are used or to add
+# components.
+"""
     File.open(config_file, "w") do |f|
+      f.write(header)
       f.write(YAML.dump(config))
     end
   end
