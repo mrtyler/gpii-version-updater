@@ -8,7 +8,7 @@ class SyncImages
 
   CONFIG_FILE = "../gpii-infra/shared/versions.yml"
   CREDS_FILE = "./creds.json"
-  REGISTRY_URL = "gcr.io/gpii2test-common-stg"
+  REGISTRY_URL = "gcr.io/gpii-common-prd"
 
   def self.load_config(config_file)
     return YAML.load(File.read(config_file))
