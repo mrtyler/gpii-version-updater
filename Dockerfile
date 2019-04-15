@@ -1,6 +1,6 @@
 FROM ruby:2.6-alpine
 
-RUN apk add \
+RUN apk add --no-cache \
     curl \
     docker \
     git \
