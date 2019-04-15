@@ -20,12 +20,12 @@ COPY \
     README.md \
     Rakefile \
     sync_images.rb \
-    update-version-wrapper \
+    sync_images_wrapper \
     ./
 # COPY treats directories differently /shrug
 COPY \
     spec \
     ./spec
-RUN chmod -R +rX * && chmod +x update-version-wrapper
+RUN chmod -R +rX * && chmod +x sync_images_wrapper
 
-CMD dockerd & ./update-version-wrapper
+CMD dockerd & ./sync_images_wrapper
