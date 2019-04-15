@@ -8,6 +8,7 @@ class SyncImages
 
   CONFIG_FILE = "../gpii-infra/shared/versions.yml"
   CREDS_FILE = "./creds.json"
+  DESIRED_COMPONENTS = nil  # "nil" means all components
   PUSH_TO_GCR = true
   REGISTRY_URL = "gcr.io/gpii-common-prd"
 
@@ -25,8 +26,21 @@ class SyncImages
     )
   end
 
-  def self.process_config(config, registry_url, push_to_gcr)
+  def self.process_config(config, registry_url, push_to_gcr, desired_components)
+    desired_components_table = {}  # Empty hash means "all components"
+    unless desired_components.nil?
+      desired_components.split(",").each do |dc|
+        desired_components_table[dc] = true
+      end
+    end
+
     config.keys.sort.each do |component|
+      # Ruby style suggests "unless X or Y", but I find that more confusing than
+      # "if not X and not Y".
+      #
+      # Anyway, skip this component if desired_components were specified AND
+      # this component is not in the set of desired_components.
+      next if (not desired_components_table.empty? and not desired_components_table.has_key?(component))
       image_name = config[component]["upstream_image"]
       (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url, push_to_gcr)
       config[component]["generated"] = {
@@ -124,7 +138,7 @@ class SyncImages
 end
 
 
-def main(config_file, registry_url, push_to_gcr)
+def main(config_file, registry_url, push_to_gcr, desired_components)
   if config_file.nil? or config_file.empty?
     config_file = SyncImages::CONFIG_FILE
   end
@@ -134,9 +148,12 @@ def main(config_file, registry_url, push_to_gcr)
   if push_to_gcr.nil? or push_to_gcr.empty?
     push_to_gcr = SyncImages::PUSH_TO_GCR
   end
+  if desired_components.nil? or desired_components.empty?
+    desired_components = SyncImages::DESIRED_COMPONENTS
+  end
   config = SyncImages.load_config(config_file)
   SyncImages.login()
-  SyncImages.process_config(config, registry_url, push_to_gcr)
+  SyncImages.process_config(config, registry_url, push_to_gcr, desired_components)
   SyncImages.write_new_config(config_file, config)
 end
 

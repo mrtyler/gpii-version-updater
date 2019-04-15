@@ -13,6 +13,7 @@ task :sync, [:config_file, :registry_url, :push_to_gcr] do |taskname, args|
       config_file=\"#{args[:config_file]}\",
       registry_url=\"#{args[:registry_url]}\",
       push_to_gcr=\"#{args[:push_to_gcr]}\",
+      desired_components=\"#{args[:desired_components]}\",
     ); \
   '"
 end

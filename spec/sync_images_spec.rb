@@ -14,7 +14,7 @@ describe SyncImages do
     expect(actual).to eq(expected)
   end
 
-  it "process_config calls process_image on each image" do
+  it "process_config calls process_image on each image when desired_components is nil" do
     fake_config = {
       "dataloader" => {
         "upstream_image" => "gpii/universal:latest",
@@ -25,13 +25,39 @@ describe SyncImages do
     }
     fake_registry_url = "gcr.fake/fake-project"
     fake_push_to_gcr = true
+    fake_desired_components = nil
 
     allow(SyncImages).to receive(:process_image)
 
-    SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr)
+    SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr, fake_desired_components)
 
     expect(SyncImages).to have_received(:process_image).with("dataloader", "gpii/universal:latest", fake_registry_url, fake_push_to_gcr)
     expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest", fake_registry_url, fake_push_to_gcr)
+  end
+
+  it "process_config calls process_image on some images when desired_components is specified" do
+    fake_config = {
+      "dataloader" => {
+        "upstream_image" => "gpii/universal:latest",
+      },
+      "flowmanager" => {
+        "upstream_image" => "gpii/universal:latest",
+      },
+      "something_else" => {
+        "upstream_image" => "gpii/something_else:1.0.0",
+      },
+    }
+    fake_registry_url = "gcr.fake/fake-project"
+    fake_push_to_gcr = true
+    fake_desired_components = "flowmanager,something_else"
+
+    allow(SyncImages).to receive(:process_image)
+
+    SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr, fake_desired_components)
+
+    expect(SyncImages).not_to have_received(:process_image).with("dataloader", "gpii/universal:latest", fake_registry_url, fake_push_to_gcr)
+    expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest", fake_registry_url, fake_push_to_gcr)
+    expect(SyncImages).to have_received(:process_image).with("something_else", "gpii/something_else:1.0.0", fake_registry_url, fake_push_to_gcr)
   end
 
   it "process_config generates new config" do
@@ -47,6 +73,7 @@ describe SyncImages do
     }
     fake_registry_url = "gcr.fake/fake-project"
     fake_push_to_gcr = true
+    fake_desired_components = nil
     fake_new_image_name = "fake-registry/gpii/universal"
     fake_sha_1 = "sha256:c0ffee"
     fake_sha_2 = "sha256:50da"
@@ -76,7 +103,7 @@ describe SyncImages do
     )
     allow(SyncImages).to receive(:write_new_config)
 
-    actual = SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr)
+    actual = SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr, fake_desired_components)
     expect(actual).to eq(expected_config)
   end
 
@@ -124,9 +151,9 @@ describe SyncImages do
     actual = SyncImages.process_image(fake_component, fake_image_name, fake_registry_url, fake_push_to_gcr)
 
     expect(SyncImages).to have_received(:pull_image).with(fake_image_name)
-    expect(SyncImages).to_not have_received(:retag_image)
+    expect(SyncImages).not_to have_received(:retag_image)
     expect(SyncImages).to have_received(:get_sha_from_image).with(fake_image, fake_new_image_name_without_tag)
-    expect(SyncImages).to_not have_received(:push_image)
+    expect(SyncImages).not_to have_received(:push_image)
     expect(actual).to eq([fake_new_image_name_without_tag, fake_sha, fake_tag])
   end
 
