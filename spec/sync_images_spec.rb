@@ -24,13 +24,14 @@ describe SyncImages do
       },
     }
     fake_registry_url = "gcr.fake/fake-project"
+    fake_push_to_gcr = true
 
     allow(SyncImages).to receive(:process_image)
 
-    SyncImages.process_config(fake_config, fake_registry_url)
+    SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr)
 
-    expect(SyncImages).to have_received(:process_image).with("dataloader", "gpii/universal:latest", fake_registry_url)
-    expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest", fake_registry_url)
+    expect(SyncImages).to have_received(:process_image).with("dataloader", "gpii/universal:latest", fake_registry_url, fake_push_to_gcr)
+    expect(SyncImages).to have_received(:process_image).with("flowmanager", "gpii/universal:latest", fake_registry_url, fake_push_to_gcr)
   end
 
   it "process_config generates new config" do
@@ -45,6 +46,7 @@ describe SyncImages do
       },
     }
     fake_registry_url = "gcr.fake/fake-project"
+    fake_push_to_gcr = true
     fake_new_image_name = "fake-registry/gpii/universal"
     fake_sha_1 = "sha256:c0ffee"
     fake_sha_2 = "sha256:50da"
@@ -74,7 +76,7 @@ describe SyncImages do
     )
     allow(SyncImages).to receive(:write_new_config)
 
-    actual = SyncImages.process_config(fake_config, fake_registry_url)
+    actual = SyncImages.process_config(fake_config, fake_registry_url, fake_push_to_gcr)
     expect(actual).to eq(expected_config)
   end
 

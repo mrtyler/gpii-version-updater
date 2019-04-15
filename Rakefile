@@ -6,10 +6,14 @@ task :test do
 end
 
 desc "Sync images"
-task :sync, [:config_file, :registry_url] do |taskname, args|
+task :sync, [:config_file, :registry_url, :push_to_gcr] do |taskname, args|
   sh "bundle exec ruby -e '\
     require \"./sync_images.rb\";
-    main(config_file=\"#{args[:config_file]}\", registry_url=\"#{args[:registry_url]}\") \
+    main(
+      config_file=\"#{args[:config_file]}\",
+      registry_url=\"#{args[:registry_url]}\",
+      push_to_gcr=\"#{args[:push_to_gcr]}\",
+    ); \
   '"
 end
 

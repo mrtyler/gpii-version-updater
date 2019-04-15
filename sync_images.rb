@@ -8,6 +8,7 @@ class SyncImages
 
   CONFIG_FILE = "../gpii-infra/shared/versions.yml"
   CREDS_FILE = "./creds.json"
+  PUSH_TO_GCR = true
   REGISTRY_URL = "gcr.io/gpii-common-prd"
 
   def self.load_config(config_file)
@@ -24,10 +25,10 @@ class SyncImages
     )
   end
 
-  def self.process_config(config, registry_url)
+  def self.process_config(config, registry_url, push_to_gcr)
     config.keys.sort.each do |component|
       image_name = config[component]["upstream_image"]
-      (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url)
+      (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url, push_to_gcr)
       config[component]["generated"] = {
         "image" => new_image_name,
         "sha" => sha,
@@ -123,16 +124,19 @@ class SyncImages
 end
 
 
-def main(config_file, registry_url)
+def main(config_file, registry_url, push_to_gcr)
   if config_file.nil? or config_file.empty?
     config_file = SyncImages::CONFIG_FILE
   end
   if registry_url.nil? or registry_url.empty?
     registry_url = SyncImages::REGISTRY_URL
   end
+  if push_to_gcr.nil? or push_to_gcr.empty?
+    push_to_gcr = SyncImages::PUSH_TO_GCR
+  end
   config = SyncImages.load_config(config_file)
   SyncImages.login()
-  SyncImages.process_config(config, registry_url)
+  SyncImages.process_config(config, registry_url, push_to_gcr)
   SyncImages.write_new_config(config_file, config)
 end
 
