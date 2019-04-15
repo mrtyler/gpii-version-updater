@@ -37,12 +37,18 @@ class SyncImages
     return config
   end
 
-  def self.process_image(component, image_name, registry_url)
+  def self.process_image(component, image_name, registry_url, push_to_gcr)
     image = self.pull_image(image_name)
-    new_image_name = self.retag_image(image, registry_url, image_name)
-    new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
-    sha = self.get_sha_from_image(image, new_image_name_without_tag)
-    self.push_image(image, new_image_name)
+    if push_to_gcr
+      new_image_name = self.retag_image(image, registry_url, image_name)
+      new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
+      sha = self.get_sha_from_image(image, new_image_name_without_tag)
+      self.push_image(image, new_image_name)
+    else
+      new_image_name = image_name
+      new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
+      sha = self.get_sha_from_image(image, new_image_name_without_tag)
+    end
 
     return [new_image_name_without_tag, sha, tag]
   end

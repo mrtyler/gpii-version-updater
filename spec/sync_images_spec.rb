@@ -78,7 +78,7 @@ describe SyncImages do
     expect(actual).to eq(expected_config)
   end
 
-  it "process_image calls helpers on image" do
+  it "process_image calls all helpers on image when push_to_gcr is true" do
     fake_component = "fake_component"
     fake_image = "fake Docker::Image object"
     fake_image_name = "fake_org/fake_img:fake_tag"
@@ -88,18 +88,43 @@ describe SyncImages do
     fake_new_image_name_without_tag = "#{SyncImages::REGISTRY_URL}/#{fake_image_name_without_tag}"
     fake_sha = "sha256:c0ffee"
     fake_tag = "fake_tag"
+    fake_push_to_gcr = true
 
     allow(SyncImages).to receive(:pull_image).and_return(fake_image)
     allow(SyncImages).to receive(:retag_image).and_return(fake_new_image_name)
     allow(SyncImages).to receive(:get_sha_from_image).and_return(fake_sha)
     allow(SyncImages).to receive(:push_image)
 
-    actual = SyncImages.process_image(fake_component, fake_image_name, fake_registry_url)
+    actual = SyncImages.process_image(fake_component, fake_image_name, fake_registry_url, fake_push_to_gcr)
 
     expect(SyncImages).to have_received(:pull_image).with(fake_image_name)
     expect(SyncImages).to have_received(:retag_image).with(fake_image, fake_registry_url, fake_image_name)
     expect(SyncImages).to have_received(:get_sha_from_image).with(fake_image, fake_new_image_name_without_tag)
     expect(SyncImages).to have_received(:push_image).with(fake_image, fake_new_image_name)
+    expect(actual).to eq([fake_new_image_name_without_tag, fake_sha, fake_tag])
+  end
+
+  it "process_image calls some helpers on image when push_to_gcr is false" do
+    fake_component = "fake_component"
+    fake_image = "fake Docker::Image object"
+    fake_image_name = "fake_org/fake_img:fake_tag"
+    fake_registry_url = "gcr.fake/fake-project"
+    fake_new_image_name_without_tag = "fake_org/fake_img"
+    fake_sha = "sha256:c0ffee"
+    fake_tag = "fake_tag"
+    fake_push_to_gcr = false
+
+    allow(SyncImages).to receive(:pull_image).and_return(fake_image)
+    allow(SyncImages).to receive(:retag_image)
+    allow(SyncImages).to receive(:get_sha_from_image).and_return(fake_sha)
+    allow(SyncImages).to receive(:push_image)
+
+    actual = SyncImages.process_image(fake_component, fake_image_name, fake_registry_url, fake_push_to_gcr)
+
+    expect(SyncImages).to have_received(:pull_image).with(fake_image_name)
+    expect(SyncImages).to_not have_received(:retag_image)
+    expect(SyncImages).to have_received(:get_sha_from_image).with(fake_image, fake_new_image_name_without_tag)
+    expect(SyncImages).to_not have_received(:push_image)
     expect(actual).to eq([fake_new_image_name_without_tag, fake_sha, fake_tag])
   end
 
