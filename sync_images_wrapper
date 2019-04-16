@@ -18,6 +18,7 @@ rm -rf gpii-infra
 # updated in a bit.
 git clone --no-tags --depth 10 git@github.com:gpii-ops/gpii-infra
 cd gpii-infra
+gpii_infra_dir="$(pwd)"
 
 # Failures in the main loop are ok, so continue if anything fails and try again
 # on the next go around.
@@ -27,7 +28,7 @@ while true ; do
     git fetch --all --depth=10 -p
     git reset --hard origin/master
 
-    "${orig_dir}/update-version" "$(pwd)/${versions_file}"
+    (cd "${orig_dir}" && rake sync"[${gpii_infra_dir}/${versions_file}]")
     if [ -n "$(git status --porcelain -- ${versions_file})" ]; then
         git add "${versions_file}"
         git commit -m"[auto] Update ${versions_file}"

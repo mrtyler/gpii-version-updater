@@ -1,13 +1,31 @@
-FROM alpine
+FROM ruby:2.6-alpine
 
-RUN apk update
-RUN apk add git openssh-client curl jq
+RUN apk add --no-cache \
+    curl \
+    docker \
+    git \
+    jq \
+    openssh-client
+RUN gem install bundler
 
-RUN adduser app -D
 WORKDIR /home/app
-COPY components.conf update-version update-version-wrapper ./
-RUN chmod +r components.conf
-RUN chmod +rx update-version update-version-wrapper
-USER app
+COPY \
+    Gemfile \
+    Gemfile.lock \
+    ./
+RUN mkdir -p vendor/bundle && bundle install --path vendor/bundle
 
-CMD ./update-version-wrapper
+COPY \
+    LICENSE.txt \
+    README.md \
+    Rakefile \
+    sync_images.rb \
+    sync_images_wrapper \
+    ./
+# COPY treats directories differently /shrug
+COPY \
+    spec \
+    ./spec
+RUN chmod -R +rX * && chmod +x sync_images_wrapper
+
+CMD dockerd & ./sync_images_wrapper
