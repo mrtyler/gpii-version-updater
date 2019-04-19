@@ -19,3 +19,29 @@ This module contains:
 ## Generating `shared/versions.yml` manually
 
 `sync_images` can be useful for local GPII development. See [gpii-infra: I want to test my local changes to GPII components in my cluster](https://github.com/gpii-ops/gpii-infra/blob/master/gcp/README.md#i-want-to-test-my-local-changes-to-gpii-components-in-my-cluster).
+
+## Adding or modifying a component
+
+`sync_images` reads a specified `versions.yml` file.
+
+Each top-level key is a `component`. The component's name is arbitrary, but should correlate with a gpii-infra module since gpii-infra will populate environment variables like `TF_VAR_<component_name>_(repository|tag|sha)` based on data under the component key in `versions.yml`.
+
+`sync_images` pulls the image specified by the component's `upstream_image` key, optionally processes the image further (e.g. push it to GCR), then populates the component's `generated` key with caluclated values.
+
+### To add a new component
+
+1. Add a new top-level key, `my_component`.
+   * Use `snake_case`, not `kebab-case`.
+1. Add a key underneath `my_component` called `repository`. Its value is the upstream location of the image, e.g. `mrtyler/universal` or `couchdb`.
+1. Add a key underneath `my_component` called `tag`. Its value is the tag on the upstream repository, e.g. `latest` or `2.3`.
+1. `rake sync"[/path/to/gpii-infra/shared/versions.yml, UNUSED, false, my_component]"`
+   * `desired_components` (the last argument) accepts multiple, pipe-separated values: `flowmanager|preferences|dataloader`
+1. Review the changes made to `versions.yml` and commit.
+
+### To modify a component
+
+1. Find the component, e.g. `your_component`.
+1. Modify `repository` and `tag`.
+1. Ignore everything under `generated`; it will be re-generated.
+1. `rake sync"[/path/to/gpii-infra/shared/versions.yml, UNUSED, false, your_component]"`
+1. Review the changes made to `versions.yml` and commit.
