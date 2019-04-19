@@ -53,6 +53,7 @@ class SyncImages
   end
 
   def self.process_image(component, image_name, registry_url, push_to_gcr)
+    puts "Processing image for #{component}..."
     image = self.pull_image(image_name)
     if push_to_gcr
       new_image_name = self.retag_image(image, registry_url, image_name)
@@ -64,6 +65,8 @@ class SyncImages
       new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
       sha = self.get_sha_from_image(image, new_image_name_without_tag)
     end
+    puts "Done with #{component}."
+    puts
 
     return [new_image_name_without_tag, sha, tag]
   end
@@ -148,6 +151,9 @@ def main(config_file, registry_url, push_to_gcr, desired_components)
   if push_to_gcr.nil? or push_to_gcr.empty?
     push_to_gcr = SyncImages::PUSH_TO_GCR
   end
+  # Due to how we pass arguments through rake, 'false' ends up as a string.
+  # Correct it into a boolean.
+  push_to_gcr = false if push_to_gcr == "false"
   if desired_components.nil? or desired_components.empty?
     desired_components = SyncImages::DESIRED_COMPONENTS
   end
