@@ -49,7 +49,7 @@ describe SyncImages do
     }
     fake_registry_url = "gcr.fake/fake-project"
     fake_push_to_gcr = true
-    fake_desired_components = "flowmanager,something_else"
+    fake_desired_components = "flowmanager|something_else"
 
     allow(SyncImages).to receive(:process_image)
 

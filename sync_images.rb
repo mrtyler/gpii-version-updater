@@ -29,7 +29,7 @@ class SyncImages
   def self.process_config(config, registry_url, push_to_gcr, desired_components)
     desired_components_table = {}  # Empty hash means "all components"
     unless desired_components.nil?
-      desired_components.split(",").each do |dc|
+      desired_components.split("|").each do |dc|
         desired_components_table[dc] = true
       end
     end

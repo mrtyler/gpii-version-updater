@@ -6,7 +6,7 @@ task :test do
 end
 
 desc "Sync images"
-task :sync, [:config_file, :registry_url, :push_to_gcr] do |taskname, args|
+task :sync, [:config_file, :registry_url, :push_to_gcr, :desired_components] do |taskname, args|
   sh "bundle exec ruby -e '\
     require \"./sync_images.rb\";
     main(
