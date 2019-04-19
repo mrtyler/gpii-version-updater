@@ -6,15 +6,37 @@ For more about the general CI/CD picture, see [Continuous Integration / Continuo
 
 This module contains:
 * `Rakefile`, the primary entry point.
-   * `rake test` to run unit tests
-   * `rake sync` to run `sync_images.rb` (see below)
-      * You can override some defaults: `rake sync"[./my_versions.yml, gcr.io/gpii2test-common-stg]"`
-   * `rake clean` to destroy the Docker `/var/lib/docker` cache volume. The volume and cache will be re-created on the next run.
 * `sync_images.rb`, which calculates the latest sha256 for each component, uploads the image to our production Google Container Registry, and writes `shared/versions.yml` in the [gpii-infra repo](https://github.com/gpii-ops/gpii-infra/).
 * `sync_images_wrapper`, a script that runs `sync_images` in a loop, committing and pushing `shared/versions.yml` if it changes.
-   * This requires commit and push privileges on `gpii-infra`. These privileges are provided via an [ssh key](https://github.com/gpii-ops/gpii-infra/blob/master/aws/README.md#configure-ssh) and some configuration of [Github](https://github.com/gpii-ops/gpii-infra/blob/master/CI-CD.md#configure-github).
+   * This requires commit and push privileges on `gpii-infra`. These privileges are provided via an ssh key and some configuration of [Github](https://github.com/gpii-ops/gpii-infra/blob/master/CI-CD.md#configure-github).
 * `Dockerfile`, to build a Docker image that runs `sync_images_wrapper`.
    * A container based on this Docker image is deployed to `i46` and managed by an [Ansible role](https://github.com/idi-ops/ansible-gpii-version-updater) and a [wrapper playbook](https://github.com/inclusive-design/ops/blob/master/ansible/config_host_gpii_version_updater.yml).
+
+## Installing on host
+
+1. Follow the [gpii-infra instructions for installing packages.](https://github.com/gpii-ops/gpii-infra/blob/master/gcp/README.md#install-packages).
+1. Clone this repo.
+1. `cd gpii-version-updater`
+1. `rake install`
+   * To clean up: `rake uninstall`
+
+## Running on host
+* `rake sync` to run `sync_images.rb` (see below)
+   * You can override some defaults: `rake sync"[./my_versions.yml, gcr.io/gpii2test-common-stg]"`
+* `rake clean_cache` to destroy the Docker `/var/lib/docker` cache volume. The volume and cache will be re-created on the next run.
+* `rake test` to run unit tests
+
+## Running in a container
+
+This workflow is a little cumbersome and is probably best for debugging version-udpater itself.
+
+1. `docker pull gpii/version-updater`
+1. Run the container in interactive mode: `docker run --privileged -it -v version-updater-docker-cache:/var/lib/docker gpii/version-updater sh`
+   * If you want to read and write the versions.yml automatically (e.g. by running `sync_images_wrapper`), you must provide a directory containing a `id_rsa.gpii-ci` usable for pulling and pushing to the gpii-infra repo.
+      * Add to the command line: `-v $(pwd)/fake-gpii-ci-ssh:/root/.ssh:ro,Z`
+   * If you want to upload images (i.e. `push_to_gcr` is set to `true` -- this is the default for `sync_images_wrapper`), you must provide credentials with write access to the production GCR instance (or to the GCR instance you specified).
+      * Add to the command line: `-v $(pwd)/creds.json:/home/app/creds.json:ro,Z`
+   * Omit `version-updater-docker-cache` if you want to re-pull the Docker images whenever you restart the container. Otherwise, provide the `-v version-updater-docker-cache` argument and clean it up afterwards with `rake clean_cache`.
 
 ## Generating `shared/versions.yml` manually
 
