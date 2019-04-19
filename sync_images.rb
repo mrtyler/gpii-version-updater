@@ -158,7 +158,7 @@ def main(config_file, registry_url, push_to_gcr, desired_components)
     desired_components = SyncImages::DESIRED_COMPONENTS
   end
   config = SyncImages.load_config(config_file)
-  SyncImages.login()
+  SyncImages.login() if push_to_gcr
   SyncImages.process_config(config, registry_url, push_to_gcr, desired_components)
   SyncImages.write_new_config(config_file, config)
 end
