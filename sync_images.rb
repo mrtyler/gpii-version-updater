@@ -39,14 +39,15 @@ class SyncImages
 
     components.each do |component|
       begin
-        image_name = config[component]["upstream_image"]
+        repository = config[component]["upstream"]["repository"]
+        tag = config[component]["upstream"]["tag"]
       rescue
-        puts "Could not find desired component #{component} (or its 'upstream_image' attribute)! Skipping!"
+        puts "Could not find desired component #{component} (or its 'repository' or 'tag' attributes)! Skipping!"
         next
       end
-      (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url, push_to_gcr)
+      (new_repository, sha, tag) = self.process_image(component, repository, tag, registry_url, push_to_gcr)
       config[component]["generated"] = {
-        "image" => new_image_name,
+        "repository" => new_repository,
         "sha" => sha,
         "tag" => tag,
       }
@@ -54,37 +55,35 @@ class SyncImages
     return config
   end
 
-  def self.process_image(component, image_name, registry_url, push_to_gcr)
+  def self.process_image(component, repository, tag, registry_url, push_to_gcr)
     puts "Processing image for #{component}..."
-    image = self.pull_image(image_name)
+    image = self.pull_image(repository, tag)
     if push_to_gcr
-      new_image_name = self.retag_image(image, registry_url, image_name)
-      new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
-      sha = self.get_sha_from_image(image, new_image_name_without_tag)
-      self.push_image(image, new_image_name)
+      new_repository = self.retag_image(image, registry_url, repository, tag)
+      sha = self.get_sha_from_image(image, new_repository)
+      self.push_image(image, new_repository, tag)
     else
-      new_image_name = image_name
-      new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
-      sha = self.get_sha_from_image(image, new_image_name_without_tag)
+      new_repository = repository
+      sha = self.get_sha_from_image(image, new_repository)
     end
     puts "Done with #{component}."
     puts
 
-    return [new_image_name_without_tag, sha, tag]
+    return [new_repository, sha, tag]
   end
 
-  def self.pull_image(image_name)
-    puts "Pulling #{image_name}..."
-    image = Docker::Image.create({"fromImage" => image_name}, creds: {})
+  def self.pull_image(repository, tag)
+    puts "Pulling #{repository}..."
+    image = Docker::Image.create({"fromImage" => repository, "tag" => tag}, creds: {})
     return image
   end
 
-  def self.get_sha_from_image(image, new_image_name_without_tag)
+  def self.get_sha_from_image(image, new_repository)
     sha = nil
 
-    # First, try to find an image matching our re-tagged image name.
+    # First, try to find an image matching our re-tagged repository.
     image.info["RepoDigests"].each do |digest|
-      if digest.start_with?(new_image_name_without_tag)
+      if digest.start_with?(new_repository)
         sha = digest.split('@')[1]
         break
       end
@@ -105,20 +104,21 @@ class SyncImages
     return sha
   end
 
-  def self.retag_image(image, registry_url, image_name)
-    new_image_name = "#{registry_url}/#{image_name}"
-    puts "Retagging #{image_name} as #{new_image_name}..."
-    image.tag("repo" => new_image_name)
-    return new_image_name
+  def self.retag_image(image, registry_url, repository, tag)
+    new_repository = "#{registry_url}/#{repository}"
+    puts "Retagging #{repository} as #{new_repository}..."
+    image.tag("repo" => new_repository, "tag" => tag)
+    return new_repository
   end
 
-  def self.push_image(image, new_image_name)
-    puts "Pushing #{new_image_name}..."
+  def self.push_image(image, new_repository, tag)
+    puts "Pushing #{new_repository}..."
     # Docker.push collects output from the API call via 'response_block()', a
     # kind of callback function. Docker.push ignores errors and discards
     # output, though the output is available to a block passed to Docker.push.
     # Hence, we use a block to look for errors and explode if we find one.
-    image.push(nil, repo_tag: new_image_name) do |output_line|
+    repo_tag = "#{new_repository}:#{tag}"
+    image.push(nil, repo_tag: repo_tag) do |output_line|
       puts "...output from push: #{output_line}"
       if output_line.include? '"error":'
         raise ArgumentError, "Found error message in output (see above)!"
