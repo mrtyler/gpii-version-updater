@@ -21,7 +21,7 @@ This module contains:
    * To clean up: `rake uninstall`
 
 ## Running on host
-* `rake sync` to run `sync_images.rb` (see below)
+* `rake sync` to run `sync_images.rb`
    * You can override some defaults: `rake sync"[./my_versions.yml, gcr.io/gpii2test-common-stg]"`
 * `rake clean_cache` to destroy the Docker `/var/lib/docker` cache volume. The volume and cache will be re-created on the next run.
 * `rake test` to run unit tests
@@ -36,7 +36,9 @@ This workflow is a little cumbersome and is probably best for debugging version-
       * Add to the command line: `-v $(pwd)/fake-gpii-ci-ssh:/root/.ssh:ro,Z`
    * If you want to upload images (i.e. `push_to_gcr` is set to `true` -- this is the default for `sync_images_wrapper`), you must provide credentials with write access to the production GCR instance (or to the GCR instance you specified).
       * Add to the command line: `-v $(pwd)/creds.json:/home/app/creds.json:ro,Z`
-   * Omit `version-updater-docker-cache` if you want to re-pull the Docker images whenever you restart the container. Otherwise, provide the `-v version-updater-docker-cache` argument and clean it up afterwards with `rake clean_cache`.
+   * Omit `version-updater-docker-cache` if you want to re-pull the Docker images whenever you restart the container. Otherwise, clean up afterwards with `rake clean_cache`.
+1. Inside the container, start dockerd in the background: `dockerd &`
+1. `rake sync"[/path/to/versions.yml]"`, etc.
 
 ## Generating `shared/versions.yml` manually
 
