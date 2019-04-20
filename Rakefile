@@ -22,15 +22,15 @@ task :test do
   sh "bundle exec rspec"
 end
 
-desc "Sync images -- positional args are config_file, registry_url, push_to_gcr, desired_components"
-task :sync, [:config_file, :registry_url, :push_to_gcr, :desired_components] do |taskname, args|
+desc "Sync images -- positional args are config_file, desired_components, push_to_gcr, registry_url"
+task :sync, [:config_file, :desired_components, :push_to_gcr, :registry_url] do |taskname, args|
   sh "bundle exec ruby -e '\
     require \"./sync_images.rb\";
     main(
       config_file=\"#{args[:config_file]}\",
-      registry_url=\"#{args[:registry_url]}\",
-      push_to_gcr=\"#{args[:push_to_gcr]}\",
       desired_components=\"#{args[:desired_components]}\",
+      push_to_gcr=\"#{args[:push_to_gcr]}\",
+      registry_url=\"#{args[:registry_url]}\",
     ); \
   '"
 end
