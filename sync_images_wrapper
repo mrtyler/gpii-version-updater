@@ -25,7 +25,7 @@ while true ; do
     git fetch --all --depth=10 -p
     git reset --hard origin/master
 
-    (cd "${orig_dir}" && rake sync"[${gpii_infra_dir}/${versions_file}, ALL, true, gcr.io/gcp-common-prd]")
+    (cd "${orig_dir}" && rake sync"[${gpii_infra_dir}/${versions_file}, ALL, true, gcr.io/gpii-common-prd]")
     if [ -n "$(git status --porcelain -- ${versions_file})" ]; then
         git add "${versions_file}"
         git --no-pager diff --cached
