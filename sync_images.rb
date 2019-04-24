@@ -8,6 +8,10 @@ class SyncImages
 
   CONFIG_FILE = "../gpii-infra/shared/versions.yml"
   CREDS_FILE = "./creds.json"
+  DESIRED_COMPONENTS = ["dataloader", "flowmanager", "preferences"]
+  DESIRED_COMPONENTS_ALL_TOKEN = "ALL"
+  DESIRED_COMPONENTS_DEFAULT_TOKEN = "DEFAULT"
+  PUSH_TO_GCR = false
   REGISTRY_URL = "gcr.io/gpii-common-prd"
 
   def self.load_config(config_file)
@@ -24,10 +28,23 @@ class SyncImages
     )
   end
 
-  def self.process_config(config, registry_url)
-    config.keys.sort.each do |component|
-      image_name = config[component]["upstream_image"]
-      (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url)
+  def self.process_config(config, desired_components, push_to_gcr, registry_url)
+    if desired_components == SyncImages::DESIRED_COMPONENTS_ALL_TOKEN
+      components = config.keys.sort.each
+    elsif desired_components == SyncImages::DESIRED_COMPONENTS_DEFAULT_TOKEN
+      components = SyncImages::DESIRED_COMPONENTS
+    else
+      components = desired_components.split("|")
+    end
+
+    components.each do |component|
+      begin
+        image_name = config[component]["upstream_image"]
+      rescue
+        puts "Could not find desired component #{component} (or its 'upstream_image' attribute)! Skipping!"
+        next
+      end
+      (new_image_name, sha, tag) = self.process_image(component, image_name, registry_url, push_to_gcr)
       config[component]["generated"] = {
         "image" => new_image_name,
         "sha" => sha,
@@ -37,12 +54,21 @@ class SyncImages
     return config
   end
 
-  def self.process_image(component, image_name, registry_url)
+  def self.process_image(component, image_name, registry_url, push_to_gcr)
+    puts "Processing image for #{component}..."
     image = self.pull_image(image_name)
-    new_image_name = self.retag_image(image, registry_url, image_name)
-    new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
-    sha = self.get_sha_from_image(image, new_image_name_without_tag)
-    self.push_image(image, new_image_name)
+    if push_to_gcr
+      new_image_name = self.retag_image(image, registry_url, image_name)
+      new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
+      sha = self.get_sha_from_image(image, new_image_name_without_tag)
+      self.push_image(image, new_image_name)
+    else
+      new_image_name = image_name
+      new_image_name_without_tag, tag = Docker::Util.parse_repo_tag(new_image_name)
+      sha = self.get_sha_from_image(image, new_image_name_without_tag)
+    end
+    puts "Done with #{component}."
+    puts
 
     return [new_image_name_without_tag, sha, tag]
   end
@@ -117,16 +143,26 @@ class SyncImages
 end
 
 
-def main(config_file, registry_url)
+def main(config_file, desired_components, push_to_gcr, registry_url)
   if config_file.nil? or config_file.empty?
     config_file = SyncImages::CONFIG_FILE
   end
+  if desired_components.nil? or desired_components.empty?
+    desired_components = SyncImages::DESIRED_COMPONENTS_DEFAULT_TOKEN
+  end
+  if push_to_gcr.nil? or push_to_gcr.empty?
+    push_to_gcr = SyncImages::PUSH_TO_GCR
+  end
+  # Due to how we pass arguments through rake, 'false' ends up as a string.
+  # Correct it into a boolean.
+  push_to_gcr = false if push_to_gcr == "false"
   if registry_url.nil? or registry_url.empty?
     registry_url = SyncImages::REGISTRY_URL
   end
+
   config = SyncImages.load_config(config_file)
-  SyncImages.login()
-  SyncImages.process_config(config, registry_url)
+  SyncImages.login() if push_to_gcr
+  SyncImages.process_config(config, desired_components, push_to_gcr, registry_url)
   SyncImages.write_new_config(config_file, config)
 end
 
