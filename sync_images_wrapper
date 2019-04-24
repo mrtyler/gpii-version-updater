@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This initial setup is essential, so abort if anything fails.
+# Abort if anything fails.
 set -e
 
 orig_dir="$(pwd)"
@@ -20,9 +20,6 @@ git clone --no-tags --depth 10 git@github.com:gpii-ops/gpii-infra
 cd gpii-infra
 gpii_infra_dir="$(pwd)"
 
-# Failures in the main loop are ok, so continue if anything fails and try again
-# on the next go around.
-set +e
 while true ; do
     echo "Starting version check at $(date)"
     git fetch --all --depth=10 -p
@@ -31,6 +28,7 @@ while true ; do
     (cd "${orig_dir}" && rake sync"[${gpii_infra_dir}/${versions_file}, ALL, true, gcr.io/gcp-common-prd]")
     if [ -n "$(git status --porcelain -- ${versions_file})" ]; then
         git add "${versions_file}"
+        git --no-pager diff --cached
         git commit -m"[auto] Update ${versions_file}"
         git push origin HEAD
     fi
