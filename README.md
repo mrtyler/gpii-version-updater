@@ -15,6 +15,7 @@ This module contains:
 ## Installing on host
 
 1. Follow the [gpii-infra instructions for installing packages.](https://github.com/gpii-ops/gpii-infra/blob/master/gcp/README.md#install-packages).
+1. Install the `bundler` gem, e.g. with `gem install bundler` or with your system's package manager.
 1. Clone this repo.
 1. `cd gpii-version-updater`
 1. `rake install`
