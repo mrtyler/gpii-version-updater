@@ -296,7 +296,7 @@ describe SyncImages do
     fake_registry_url = "gcr.fake/fake-project"
     fake_repository = "fake_org/fake_img"
     fake_tag = "fake_tag"
-    fake_new_repository = "#{fake_registry_url}/#{fake_repository}"
+    fake_new_repository = "#{fake_registry_url}/fake_org__fake_img"
 
     allow(fake_image).to receive(:tag)
     actual = SyncImages.retag_image(fake_image, fake_registry_url, fake_repository, fake_tag)
