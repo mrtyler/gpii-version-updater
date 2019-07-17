@@ -60,8 +60,10 @@ class SyncImages
     image = self.pull_image(repository, tag)
     if push_to_gcr
       new_repository = self.retag_image(image, registry_url, repository, tag)
-      sha = self.get_sha_from_image(image, new_repository)
       self.push_image(image, new_repository, tag)
+      # Re-pull image so that we (consistently) get the SHA based on the pushed image.
+      image = self.pull_image(new_repository, tag)
+      sha = self.get_sha_from_image(image, new_repository)
     else
       new_repository = repository
       sha = self.get_sha_from_image(image, new_repository)
