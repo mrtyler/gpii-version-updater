@@ -105,7 +105,10 @@ class SyncImages
   end
 
   def self.retag_image(image, registry_url, repository, tag)
-    new_repository = "#{registry_url}/#{repository}"
+    # Many applications (Docker Hub, GKE Binary Authorization
+    # admission_whitelist_patterns) do not support slashes after the "username"
+    # component (e.g. host.name/username/image).
+    new_repository = "#{registry_url}/#{repository.gsub("/", "__")}"
     puts "Retagging #{repository} as #{new_repository}..."
     image.tag("repo" => new_repository, "tag" => tag)
     return new_repository
